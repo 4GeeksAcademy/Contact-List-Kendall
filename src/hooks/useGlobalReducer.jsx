@@ -9,7 +9,7 @@ const ApiUrl = "https://playground.4geeks.com/contact/"
 
 export function StoreProvider({ children }) {
     // Initialize reducer with the initial state.
-    const [store, dispatch] = useReducer(storeReducer, initialStore)
+    const [store, dispatch] = useReducer(storeReducer, { contacts: [] })
 
     useEffect(() => {
         const fetchData = async () => {
@@ -20,7 +20,7 @@ export function StoreProvider({ children }) {
                 let response = await fetch(urlGet)
 
                 if (response.status === 404) {
-                    console.log("El usuario no existe. Creando usuario...");
+                    console.log("ℹ️ Agenda no encontrada en el servidor. Iniciando auto-creación...")
 
                     const contactResponse = await fetch(urlPost, {
                         method: "POST",
@@ -34,7 +34,7 @@ export function StoreProvider({ children }) {
                 if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
 
                 const data = await response.json()
-                dispatch({ type: 'LOAD_CONTACTS', payload: data.contacts || []});
+                dispatch({ type: 'LOAD_CONTACTS', payload: data.contacts || [] });
             } catch (error) {
                 console.error('Error fetching contacts:', error);
             }
@@ -50,6 +50,8 @@ export function StoreProvider({ children }) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(contactInfo)
             })
+            if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+
             const data = await response.json()
             dispatch({ type: 'ADD_CONTACT', payload: data })
         } catch (error) {
@@ -60,9 +62,11 @@ export function StoreProvider({ children }) {
     const deleteContact = async (id) => {
         const url = ApiUrl + "agendas/kendallsh/contacts/" + id
         try {
-            await fetch(url, {
+            const response = await fetch(url, {
                 method: 'DELETE',
             })
+            if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+
             dispatch({ type: 'DELETE_CONTACT', payload: id })
         } catch (error) {
             console.error('Error deleting contact:', error);
@@ -77,6 +81,8 @@ export function StoreProvider({ children }) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(contactUpdate)
             })
+            if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+
             const data = await response.json()
             dispatch({ type: 'UPDATE_CONTACT', payload: data })
         } catch (error) {

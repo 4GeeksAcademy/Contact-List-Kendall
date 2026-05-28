@@ -6,7 +6,7 @@ const Contact = () => {
 
     return <div className="container">
         <ul className="list-unstyled">
-            {store.map((contact) => (
+            {store.contacts.map((contact) => (
                 <li key={contact.id}>
                     <div className="card mb-3">
                         <div className="row g-0">

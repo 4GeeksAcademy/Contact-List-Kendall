@@ -19,7 +19,9 @@ export const NewContact = () => {
 
   useEffect(() => {
     if (isEdit && store.contacts) {
-      const contactToEdit = store.contacts.find(c => c.id === parseInt(id));
+      const numericId = Number(id)
+      const contactToEdit = store.contacts.find(c => c.id === numericId)
+
       if (contactToEdit) {
         setInputValue(contactToEdit);
       }
@@ -30,6 +32,7 @@ export const NewContact = () => {
     evt.preventDefault();
 
     if (isEdit) {
+      
       await updateContact(id, inputValue);
     } else {
       await addContact(inputValue);
