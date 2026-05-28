@@ -1,12 +1,15 @@
 // Import necessary components from react-router-dom and other parts of the application.
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer";  // Custom hook for accessing the global state.
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export const NewContact = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const isEdit = Boolean(id)
   // Access the global state and dispatch function using the useGlobalReducer hook.
-  const { store, addContact } = useGlobalReducer()
+  const { store, addContact, updateContact } = useGlobalReducer()
+
   const [inputValue, setInputValue] = useState({
     name: "",
     email: "",
@@ -14,10 +17,23 @@ export const NewContact = () => {
     address: ""
   });
 
-  const handleSubmit = (evt) => {
-    evt.preventDefault()
+  useEffect(() => {
+    if (isEdit && store.contacts) {
+      const contactToEdit = store.contacts.find(c => c.id === parseInt(id));
+      if (contactToEdit) {
+        setInputValue(contactToEdit);
+      }
+    }
+  }, [id, isEdit, store.contacts]);
 
-    addContact(inputValue)
+  const handleSubmit = async (evt) => {
+    evt.preventDefault();
+
+    if (isEdit) {
+      await updateContact(id, inputValue);
+    } else {
+      await addContact(inputValue);
+    }
 
     setInputValue({
       name: "",
@@ -27,11 +43,10 @@ export const NewContact = () => {
     });
 
     navigate("/");
-
-  }
+  };
   return (
     <div className="container">
-      <h1 className="text-center mt-5 fw-bold">Add a new contact</h1>
+      <h1 className="text-center mt-5 fw-bold">{isEdit ? "Edit Contact" : "Add New Contact"}</h1>
 
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
@@ -88,7 +103,7 @@ export const NewContact = () => {
         </div>
 
         <div className="d-grid mb-3">
-          <button type="submit" className="btn btn-primary">save</button>
+          <button type="submit" className="btn btn-primary">{isEdit ? "Save Changes" : "Save Contact"}</button>
         </div>
       </form>
 

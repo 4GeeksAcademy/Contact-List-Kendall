@@ -5,15 +5,16 @@ export default function storeReducer(store, action = {}) {
   switch(type){
 
     case 'LOAD_CONTACTS':
-      const { contacts } = payload
-      return contacts;
+      return payload;
 
     case 'ADD_CONTACT':
       return [...store, payload];
 
     case 'DELETE_CONTACT':
-      const { id } = payload
-      return store.filter(contact => contact.id !== id)
+      return store.filter(contact => contact.id !== payload);
+
+    case 'UPDATE_CONTACT':
+      return store.map(contact => contact.id === payload.id ? payload : contact);
 
     default:
       return store;

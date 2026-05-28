@@ -1,6 +1,6 @@
 
 import { useContext, useReducer, createContext, useEffect } from "react";
-import storeReducer, { initialStore } from "../store" 
+import storeReducer, { initialStore } from "../store"
 
 
 const StoreContext = createContext()
@@ -13,11 +13,28 @@ export function StoreProvider({ children }) {
 
     useEffect(() => {
         const fetchData = async () => {
-            const url = ApiUrl + "agendas/kendallsh/contacts"
+            const urlGet = ApiUrl + "agendas/kendallsh/contacts"
+            const urlPost = ApiUrl + "agendas/kendallsh"
             try {
-                const response = await fetch(url)
+
+                let response = await fetch(urlGet)
+
+                if (response.status === 404) {
+                    console.log("El usuario no existe. Creando usuario...");
+
+                    const contactResponse = await fetch(urlPost, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" }
+                    })
+
+                    if (!contactResponse.ok) throw new Error("No se pudo crear el usuario");
+
+                    response = await fetch(urlGet);
+                }
+                if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+
                 const data = await response.json()
-                dispatch({ type: 'LOAD_CONTACTS', payload: data });
+                dispatch({ type: 'LOAD_CONTACTS', payload: data.contacts || []});
             } catch (error) {
                 console.error('Error fetching contacts:', error);
             }
@@ -34,7 +51,7 @@ export function StoreProvider({ children }) {
                 body: JSON.stringify(contactInfo)
             })
             const data = await response.json()
-            dispatch({type: 'ADD_CONTACT', payload: data})
+            dispatch({ type: 'ADD_CONTACT', payload: data })
         } catch (error) {
             console.error('Error adding contacts:', error);
         }
@@ -46,23 +63,35 @@ export function StoreProvider({ children }) {
             await fetch(url, {
                 method: 'DELETE',
             })
-            dispatch({type: 'DELETE_CONTACT', payload: { id }})
+            dispatch({ type: 'DELETE_CONTACT', payload: id })
         } catch (error) {
             console.error('Error deleting contact:', error);
-            }
         }
+    }
+
+    const updateContact = async (id, contactUpdate) => {
+        const url = ApiUrl + "agendas/kendallsh/contacts/" + id
+        try {
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(contactUpdate)
+            })
+            const data = await response.json()
+            dispatch({ type: 'UPDATE_CONTACT', payload: data })
+        } catch (error) {
+            console.error('Error updating contact:', error);
+        }
+    }
 
 
-
-
-    
-    return <StoreContext.Provider value={{ store, addContact, deleteContact }}>
+    return <StoreContext.Provider value={{ store, addContact, deleteContact, updateContact }}>
         {children}
     </StoreContext.Provider>
 }
 
 
 export default function useGlobalReducer() {
-    const { store, addContact, deleteContact } = useContext(StoreContext)
-    return { store, addContact, deleteContact };
+    const { store, addContact, deleteContact, updateContact } = useContext(StoreContext)
+    return { store, addContact, deleteContact, updateContact };
 }

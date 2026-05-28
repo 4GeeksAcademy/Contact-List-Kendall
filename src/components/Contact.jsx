@@ -1,4 +1,5 @@
 import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
+import {Link} from "react-router-dom";
 
 const Contact = () => {
     const { store, deleteContact } = useGlobalReducer();
@@ -21,6 +22,7 @@ const Contact = () => {
                                 </div>
                             </div>
                             <button className="btn btn-danger" onClick={() => deleteContact(contact.id)}>Delete</button>
+                            <Link to={"/editContact/" + contact.id} className="btn btn-primary">Edit</Link>
                         </div>
                     </div>
                 </li>
